@@ -11,9 +11,27 @@ export class Graph {
         this.triples.push({ subject, predicate, object });
     }
 
-    getObjects(object: string, predicate: string): string[] {
+    getObjects(objectName: string, predicate: string): String[] {
         return this.triples
-            .filter(triple => triple.object === object && triple.predicate === predicate)
+            .filter(triple => triple.object === objectName && triple.predicate === predicate)
             .map(triple => triple.object);
+    }
+
+    getObjectsByPredicate(predicate: string): String[] {
+        return this.triples
+            .filter(triple => triple.predicate === predicate)
+            .map(triple => triple.object);
+    }
+    
+    countClassesNodes = () => {
+        return this.getObjectsByPredicate('class').length
+    }
+
+    countClassesRelationship = () => {
+        return this.getObjectsByPredicate('subClassOf').length
+    }
+
+    countIndividuals = () => {
+        return this.getObjectsByPredicate('is').length
     }
 }

@@ -1,24 +1,51 @@
+import { Button, Input, Space, Tag } from 'antd';
 import './App.css';
 import { useHomeHook } from './hook/useHomeHook';
 
 function App() {
-    const hook = useHomeHook();
+    const { url, setUrl, handleLoadFile, isInsertNeo4JVisible, graph } = useHomeHook();
 
 
     return (
         <div className="App">
             <header className="App-header">
-                <p>
-                    Edit <code>src/App.tsx</code> and save to reload.
-                </p>
-                <a
-                    className="App-link"
-                    href="https://reactjs.org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Learn React
-                </a>
+                <Space>
+                    <Input
+                        placeholder="Enter URL"
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        style={{ width: 300 }}
+                    />
+                    <Button type="primary" disabled={!url} onClick={handleLoadFile}>
+                        Carregar
+                    </Button>
+                </Space>
+                {
+                    isInsertNeo4JVisible() &&
+
+                    <>
+                        <Space>
+                            <Button type="primary" onClick={() => {}}>
+                                Inserir classes
+                            </Button>
+                            <Button type="primary" onClick={() => {}}>
+                                Criar relacionamento entre classes
+                            </Button>
+
+                        </Space>
+                        <div>
+                            <Tag color="blue" className="mt-2">
+                            {graph?.countClassesNodes()} Classes
+                            </Tag>
+                            <Tag color="blue" className="mt-2">
+                            {graph?.countClassesRelationship()} Relacionamentos entre classes
+                            </Tag>
+                            <Tag color="blue" className="mt-2">
+                            {graph?.countIndividuals()} Indivíduos
+                            </Tag>
+                        </div>
+                    </>
+                }
             </header>
         </div>
     );

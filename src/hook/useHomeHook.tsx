@@ -1,33 +1,45 @@
 import { useCallback, useEffect, useState } from "react";
+import { Graph } from "../model/Graph";
 import { METHODS, ontologyUrl } from "../utils/Constants";
 import { fetch } from "../utils/fetch";
-import { parseOWLtoRDF } from "../utils/Parser";
+import { parseOWLtoGraph } from "../utils/Parser";
 
 export const useHomeHook = () => {
+    const [url, setUrl] = useState('');
     const [ontology, setOntology] = useState()
     const [loading, setLoading] = useState(true)
+    const [graph, setGraph] = useState<Graph | null>()
 
-    const [xmlDocument, setXmlDocument] = useState<Document>()
 
     const loadOntology = useCallback(async () => {
-        const ontology = await fetch(METHODS.GET, ontologyUrl)
-        setOntology(ontology)
+        setLoading(true)
+        const ontology = await fetch(METHODS.GET, url)
+        return ontology;
     }, []);
 
-    useEffect(() => {
-        loadOntology().then(_ => {
+    const handleLoadFile = async () => {
+        fetch(METHODS.GET, url).then(ontology => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(ontology, "application/xml");
+            setGraph(parseOWLtoGraph(xmlDoc))
+        }).finally(() => {
             setLoading(false)
         })
-    }, []);
 
-    useEffect(() => {
-        if (!ontology)
-            return
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(ontology, "application/xml");
-        setXmlDocument(xmlDoc)
-        parseOWLtoRDF(xmlDoc)
+    }
 
-    }, [loading, ontology]);
-    return null
+
+    const isInsertNeo4JVisible = () => {
+        return graph
+    }
+
+
+
+    return {
+        url,
+        setUrl,
+        handleLoadFile,
+        isInsertNeo4JVisible,
+        graph
+    }
 }
