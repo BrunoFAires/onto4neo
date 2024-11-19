@@ -9,7 +9,7 @@ export const parseOWLtoGraph = (owlDocument: Document): Graph => {
     for (const element of classElements) {
         const classURI = element.getAttribute('rdf:about');
         if (classURI) {
-            const labels = getElementLabels(element);
+            //const labels = getElementLabels(element);
             const className = nameFromURI(classURI);
             if (className) {
                 graph.addTriple(className, 'class', 'owl:Class');
@@ -29,7 +29,7 @@ export const parseOWLtoGraph = (owlDocument: Document): Graph => {
         }
 
     }
-    
+
     const individuals = getIndividuals(owlDocument)
 
     for (const individual of individuals) {
@@ -72,8 +72,8 @@ const getIdividualClass = (element: Element): Element => {
     return Array.from(element.getElementsByTagName('rdf:type'))[0]
 }
 
-const getElementLabels = (element: Element): string[] => {
+/* const getElementLabels = (element: Element): string[] => {
     const labels = Array.from(element.getElementsByTagName('rdfs:label'));
     return labels.map(label => label.textContent ?? '')
         .filter(text => text !== '');
-}
+} */

@@ -17,12 +17,11 @@ export class Graph {
             .map(triple => triple.object);
     }
 
-    getObjectsByPredicate(predicate: string): String[] {
+    getObjectsByPredicate(predicate: string): Triple[] {
         return this.triples
             .filter(triple => triple.predicate === predicate)
-            .map(triple => triple.object);
     }
-    
+
     countClassesNodes = () => {
         return this.getObjectsByPredicate('class').length
     }
