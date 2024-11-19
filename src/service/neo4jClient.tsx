@@ -1,3 +1,4 @@
+import { Graph, Triple } from "../model/Graph";
 
 var neo4j = require('neo4j-driver');
 
@@ -20,8 +21,32 @@ export const addRelationship = async (className: string, superClassName: string)
 
 export const addIndividuals = async (individual: string, className: string) => {
   const { records, summary, keys } = await driver.executeQuery(
-    `MERGE (ga:${individual} )
+    `MERGE (ga:${individual} ) 
       MERGE (go:${className})
       MERGE (ga)-[:is]->(go)`,
   )
+}
+
+export const insertNodes = async (graph: Graph) => {
+  const session = driver.session();
+
+  console.time("Tempo de execução da inserção");
+  const classes = graph.filteredTriples('class')
+  try {
+    const result = await session.run(
+      `
+      UNWIND $classes AS record
+      CALL apoc.create.node([record.subject], {name: record.subject}) YIELD node
+      RETURN node
+      `,
+      { classes }
+    );
+
+  } catch (err) {
+    console.error('Erro na inserção:', err);
+  } finally {
+    console.timeEnd("Tempo de execução da inserção");
+    await session.close();
+    await driver.close();
+  }
 }

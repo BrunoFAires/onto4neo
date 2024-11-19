@@ -3,6 +3,7 @@ import { Graph } from "../model/Graph";
 import { METHODS, ontologyUrl } from "../utils/Constants";
 import { fetch } from "../utils/fetch";
 import { parseOWLtoGraph } from "../utils/Parser";
+import { insertNodes } from "../service/neo4jClient";
 
 export const useHomeHook = () => {
     const [url, setUrl] = useState('');
@@ -28,18 +29,21 @@ export const useHomeHook = () => {
 
     }
 
-
     const isInsertNeo4JVisible = () => {
         return graph
     }
 
 
+    const insertClasses = () => {
+        insertNodes(graph!!)
+    }
 
     return {
         url,
         setUrl,
         handleLoadFile,
         isInsertNeo4JVisible,
-        graph
+        graph,
+        insertClasses
     }
 }
