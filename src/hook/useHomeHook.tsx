@@ -39,7 +39,6 @@ export const useHomeHook = () => {
         loading,
         handleLoadFile,
         isInsertNeo4JVisible,
-        graph,
         insertClasses
     }
 }
