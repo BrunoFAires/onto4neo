@@ -3,7 +3,7 @@ import './App.css';
 import { useHomeHook } from './hook/useHomeHook';
 
 function App() {
-    const { url, setUrl, handleLoadFile, isInsertNeo4JVisible, graph, insertClasses } = useHomeHook();
+    const { url, setUrl, handleLoadFile, isInsertNeo4JVisible, graph, insertClasses, insertRelationships, insertIndividuals } = useHomeHook();
 
 
 
@@ -29,22 +29,14 @@ function App() {
                             <Button type="primary" onClick={insertClasses}>
                                 Inserir classes
                             </Button>
-                            <Button type="primary" onClick={() => { }}>
+                            <Button type="primary" onClick={insertIndividuals}>
+                                Inserir individuos
+                            </Button>
+                            <Button type="primary" onClick={insertRelationships}>
                                 Criar relacionamento entre classes
                             </Button>
 
                         </Space>
-                        <div>
-                            <Tag color="blue" className="mt-2">
-                                {graph?.countClassesNodes()} Classes
-                            </Tag>
-                            <Tag color="blue" className="mt-2">
-                                {graph?.countClassesRelationship()} Relacionamentos entre classes
-                            </Tag>
-                            <Tag color="blue" className="mt-2">
-                                {graph?.countIndividuals()} Indivíduos
-                            </Tag>
-                        </div>
                     </>
                 }
             </header>

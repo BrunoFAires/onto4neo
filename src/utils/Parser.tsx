@@ -1,79 +1,83 @@
 import { Graph } from "../model/Graph";
-import { classNameFromURI as nameFromURI } from "./utils";
+import { classNameFromURI as nameFromURI, normalizeString } from "./utils";
 
+export interface Individual {
+    name: string;
+    alternateNames: string[];
+}
 
-export const parseOWLtoGraph = (owlDocument: Document): Graph => {
-    const graph = new Graph();
-    const classElements = getClasses(owlDocument)
+export interface ClassInfo {
+    name: string;
+    superclasse?: string;
+    individuals: Individual[];
+}
 
-    for (const element of classElements) {
-        const classURI = element.getAttribute('rdf:about');
-        if (classURI) {
-            //const labels = getElementLabels(element);
-            const className = nameFromURI(classURI);
-            if (className) {
-                graph.addTriple(className, 'class', 'owl:Class');
-                const subclasses = getSubclasses(element)
-                for (const subclass of subclasses) {
-                    if (subclass) {
-                        const superClassURI = subclass.getAttribute('rdf:resource');
-                        if (superClassURI) {
-                            const superClassName = nameFromURI(superClassURI);
-                            if (superClassName) {
-                                graph.addTriple(className, 'subClassOf', superClassName);
-                            }
-                        }
-                    }
-                }
+function normalizeRDFName(name: string): string {
+    return name.replace(/-/g, '_');
+}
+
+export const parseOWLtoGraph = (owlDocument: Document): ClassInfo[]  => {
+    const classesMap: Record<string, ClassInfo> = {};
+    
+    const owlClasses = owlDocument.getElementsByTagName('owl:Class');
+    for (let i = 0; i < owlClasses.length; i++) {
+        const classElement = owlClasses[i];
+        const classUri = classElement.getAttribute('rdf:about') || '';
+        let className = classUri.split('#')[1] || '';
+        className = normalizeRDFName(className);
+
+        const superClassElements = classElement.getElementsByTagName('rdfs:subClassOf');
+        let superclasseName = '';
+        if (superClassElements.length > 0) {
+            const superClassUri = superClassElements[0].getAttribute('rdf:resource') || '';
+            superclasseName = normalizeRDFName(superClassUri.split('#')[1] || '');
+        }
+        
+        classesMap[className] = {
+            name: className,
+            superclasse: superclasseName || undefined,
+            individuals: []
+        };
+    }
+    
+    const namedIndividuals = owlDocument.getElementsByTagName('owl:NamedIndividual');
+    for (let i = 0; i < namedIndividuals.length; i++) {
+        const individual = namedIndividuals[i];
+    
+        const individualUri = individual.getAttribute('rdf:about') || '';
+        let individualName = individualUri.split('#')[1] || '';
+        individualName = normalizeRDFName(individualName);
+        
+        const types = individual.getElementsByTagName('rdf:type');
+        for (let j = 0; j < types.length; j++) {
+            const typeResource = types[j].getAttribute('rdf:resource') || '';
+            let className = typeResource.split('#')[1] || '';
+            className = normalizeRDFName(className);
+            
+            const labels = individual.getElementsByTagName('rdfs:label');
+            const alternateNames = Array.from(labels).map(label => 
+                label.textContent || ''
+            ).filter(name => name.trim() !== '');
+            
+            if (!classesMap[className]) {
+                classesMap[className] = {
+                    name: className,
+                    individuals: []
+                };
+            }
+            
+            const existingIndividual = classesMap[className].individuals.find(
+                ind => ind.name === individualName
+            );
+            
+            if (!existingIndividual) {
+                classesMap[className].individuals.push({
+                    name: individualName,
+                    alternateNames: alternateNames
+                });
             }
         }
-
     }
-
-    const individuals = getIndividuals(owlDocument)
-
-    for (const individual of individuals) {
-        const individualURI = individual.getAttribute('rdf:about');
-        if (individualURI) {
-            const individualName = nameFromURI(individualURI);
-            if (individualName) {
-                const individualClass = getIdividualClass(individual)
-                const individualClassURI = individualClass.getAttribute("rdf:resource");
-                if (individualClassURI) {
-                    const individualClassName = nameFromURI(individualClassURI);
-                    if (individualClassName) {
-                        graph.addTriple(individualName, 'is', individualClassName);
-                    }
-                }
-            }
-        }
-
-    }
-
-    console.log(graph)
-
-    return graph;
-};
-
-const getClasses = (owlDocument: Document): Element[] => {
-    return Array.from(owlDocument!.getElementsByTagName('owl:Class'));
+    
+    return Object.values(classesMap);
 }
-
-const getSubclasses = (element: Element): Element[] => {
-    return Array.from(element.getElementsByTagName('rdfs:subClassOf'));
-}
-
-const getIndividuals = (owlDocument: Document): Element[] => {
-    return Array.from(owlDocument!.getElementsByTagName('owl:NamedIndividual'));
-}
-
-
-const getIdividualClass = (element: Element): Element => {
-    return Array.from(element.getElementsByTagName('rdf:type'))[0]
-}
-
-/* const getElementLabels = (element: Element): string[] => {
-    const labels = Array.from(element.getElementsByTagName('rdfs:label'));
-    return labels.map(label => label.textContent ?? '')
-        .filter(text => text !== '');
-} */

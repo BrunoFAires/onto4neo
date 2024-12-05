@@ -1,15 +1,13 @@
 import { useState } from "react";
-import { Graph } from "../model/Graph";
+import { insertRelationship } from "../service/neo4jClient";
 import { METHODS } from "../utils/Constants";
-import { parseOWLtoGraph } from "../utils/Parser";
+import { ClassInfo, parseOWLtoGraph } from "../utils/Parser";
 import { fetch } from "../utils/fetch";
-import { addNode, addRelationship } from "../service/neo4jClient";
-import { insertNodes } from "../service/neo4jClient";
 
 export const useHomeHook = () => {
     const [url, setUrl] = useState('');
     const [loading, setLoading] = useState(false)
-    const [graph, setGraph] = useState<Graph | null>()
+    const [graph, setGraph] = useState<ClassInfo[] | null>()
 
     const handleLoadFile = async () => {
         setLoading(true)
@@ -17,6 +15,7 @@ export const useHomeHook = () => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(ontology, "application/xml");
             setGraph(parseOWLtoGraph(xmlDoc))
+            console.log(graph)
         }).finally(() => {
             setLoading(false)
         })
@@ -29,7 +28,16 @@ export const useHomeHook = () => {
 
 
     const insertClasses = () => {
-        insertNodes(graph!!)
+        //insertNodes(graph!!, 'subClassOf')
+    }
+
+    const insertIndividuals = () => {
+        //insertNodes(graph!!, 'is')
+    }
+    
+    
+    const insertRelationships = () => {
+        insertRelationship(graph!!, 'subClassOf')
     }
 
     return {
@@ -39,6 +47,8 @@ export const useHomeHook = () => {
         loading,
         handleLoadFile,
         isInsertNeo4JVisible,
-        insertClasses
+        insertClasses,
+        insertRelationships,
+        insertIndividuals
     }
 }
